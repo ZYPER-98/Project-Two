@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CervAI — About</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:      #080c14;
+            --surface: #0e1420;
+            --border:  #1c2535;
+            --accent:  #00d4ff;
+            --accent2: #7c3aed;
+            --text:    #e8edf5;
+            --muted:   #5a6680;
+            --card:    #111827;
+            --warn:    #ffa726;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+        .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; animation: drift 12s ease-in-out infinite alternate; }
+        .orb-1 { width: 500px; height: 500px; background: rgba(0,212,255,.05); top: -200px; right: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: rgba(124,58,237,.06); bottom: -100px; left: -100px; animation-delay: -5s; }
+        @keyframes drift { to { transform: translate(25px, 15px); } }
+
+        .page { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 0 24px 80px; }
+
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 24px 0 40px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 56px;
+        }
+        .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--accent); letter-spacing: -0.5px; }
+        .logo span { color: var(--text); }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a {
+            font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--muted);
+            text-decoration: none; padding: 8px 18px; border: 1px solid var(--border);
+            border-radius: 6px; transition: all .25s; letter-spacing: .04em;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); border-color: var(--accent); background: rgba(0,212,255,.05); }
+
+        .page-header { margin-bottom: 52px; }
+        .page-tag {
+            font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--accent);
+            letter-spacing: .15em; text-transform: uppercase; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .page-tag::before { content: ''; display: inline-block; width: 28px; height: 1px; background: var(--accent); }
+        .page-header h1 {
+            font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800; letter-spacing: -1px; margin-bottom: 12px;
+        }
+        .page-header h1 em {
+            font-style: normal;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .page-header p { color: var(--muted); line-height: 1.7; font-weight: 300; max-width: 500px; }
+
+        /* Section */
+        .section { margin-bottom: 48px; }
+        .section-label {
+            font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--muted);
+            letter-spacing: .12em; text-transform: uppercase; margin-bottom: 20px;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+        .section h2 {
+            font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700;
+            margin-bottom: 14px; color: var(--text);
+        }
+        p, li { line-height: 1.75; color: #9baec8; font-weight: 300; font-size: .93rem; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+            background: var(--border); border-radius: 12px; overflow: hidden;
+            border: 1px solid var(--border); margin-bottom: 32px;
+        }
+        .stat { background: var(--card); padding: 24px; text-align: center; }
+        .stat-val { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--accent); display: block; }
+        .stat-lbl { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-family: 'DM Mono', monospace; }
+
+        /* Tech stack */
+        .tech-list { display: flex; flex-direction: column; gap: 8px; }
+        .tech-item {
+            display: flex; align-items: flex-start; gap: 14px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px 18px; transition: border-color .2s;
+        }
+        .tech-item:hover { border-color: var(--muted); }
+        .tech-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+        .tech-name { font-weight: 500; font-size: .92rem; color: var(--text); margin-bottom: 2px; }
+        .tech-desc { font-size: .82rem; color: var(--muted); }
+
+        /* Cell cards */
+        .cell-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .cell-card {
+            background: var(--card); border-radius: 12px; padding: 22px;
+            border: 1px solid var(--border); border-left: 3px solid;
+            transition: transform .25s, box-shadow .25s;
+        }
+        .cell-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+        .cell-name { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+        .cell-desc { font-size: .82rem; color: var(--muted); margin-bottom: 12px; line-height: 1.6; }
+        .risk-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-family: 'DM Mono', monospace; font-size: .7rem;
+            padding: 4px 10px; border-radius: 4px; border: 1px solid;
+        }
+
+        /* Process steps */
+        .steps { display: flex; flex-direction: column; gap: 0; }
+        .step { display: flex; gap: 20px; padding: 20px 0; border-bottom: 1px solid var(--border); }
+        .step:last-child { border-bottom: none; }
+        .step-num {
+            font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--accent);
+            min-width: 32px; padding-top: 2px;
+        }
+        .step-content h4 { font-size: .95rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+        .step-content p { font-size: .85rem; margin: 0; }
+
+        /* Checklist */
+        .checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .checklist li {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 16px; background: var(--card);
+            border: 1px solid var(--border); border-radius: 8px;
+        }
+        .checklist li::before { content: '✓'; color: var(--accent); font-weight: 600; flex-shrink: 0; }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: rgba(255,167,38,.05); border: 1px solid rgba(255,167,38,.2);
+            border-radius: 12px; padding: 24px; margin-bottom: 32px;
+        }
+        .disclaimer h4 { color: var(--warn); font-size: .9rem; font-weight: 600; margin-bottom: 8px; }
+        .disclaimer p { color: #9baec8; font-size: .86rem; }
+
+        /* Refs */
+        .ref-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .ref-list li {
+            padding: 12px 16px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; font-size: .83rem; color: var(--muted);
+            font-family: 'DM Mono', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .cell-grid  { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="page">
+    <nav>
+        <div class="logo">Cerv<span>AI</span></div>
+        <div class="nav-links">
+            <a href="/">Classify</a>
+            <a href="/about" class="active">About</a>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="page-tag">Documentation</div>
+        <h1>About <em>CervAI</em></h1>
+        <p>A deep learning system for automated cervical cell classification using ensemble neural networks trained on cytology images.</p>
+    </div>
+
+    <!-- Model Performance -->
+    <div class="section">
+        <div class="section-label">01 — Model Performance</div>
+        <div class="stats-grid">
+            <div class="stat"><span class="stat-val">94.23%</span><span class="stat-lbl">Accuracy</span></div>
+            <div class="stat"><span class="stat-val">5</span><span class="stat-lbl">Cell Types</span></div>
+            <div class="stat"><span class="stat-val">4,155</span><span class="stat-lbl">Train Images</span></div>
+            <div class="stat"><span class="stat-val">2</span><span class="stat-lbl">Models</span></div>
+        </div>
+    </div>
+
+    <!-- Technology Stack -->
+    <div class="section">
+        <div class="section-label">02 — Technology Stack</div>
+        <div class="tech-list">
+            <div class="tech-item">
+                <div class="tech-icon">🧠</div>
+                <div><div class="tech-name">ResNet152</div><div class="tech-desc">152-layer residual network with skip connections for deep feature extraction without vanishing gradients.</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🔷</div>
+                <div><div class="tech-name">VGG16</div><div class="tech-desc">16-layer Visual Geometry Group network — uniform architecture with excellent transfer learning properties.</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">⚡</div>
+                <div><div class="tech-name">Weighted Ensemble</div><div class="tech-desc">Validation-optimized weighted averaging of both models to boost accuracy and reduce individual model bias.</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🌐</div>
+                <div><div class="tech-name">TensorFlow / Keras + Flask</div><div class="tech-desc">Industry-standard deep learning framework served via a lightweight Python web backend.</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cell Classifications -->
+    <div class="section">
+        <div class="section-label">03 — Cell Classifications</div>
+        <div class="cell-grid">
+            {% for key, info in class_info.items() %}
+            <div class="cell-card" style="border-left-color: {{ info.color }}">
+                <div class="cell-name" style="color: {{ info.color }}">{{ info.name }}</div>
+                <div class="cell-desc">{{ info.description }}</div>
+                <span class="risk-badge" style="color:{{ info.color }};border-color:{{ info.color }}44;background:{{ info.color }}11">
+                    ◉ Risk: {{ info.risk }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="section">
+        <div class="section-label">04 — How It Works</div>
+        <div class="steps">
+            <div class="step"><div class="step-num">01</div><div class="step-content"><h4>Image Upload</h4><p>User uploads a cervical cell image via the web interface (drag & drop or file picker).</p></div></div>
+            <div class="step"><div class="step-num">02</div><div class="step-content"><h4>Preprocessing</h4><p>Image is resized to 224×224 px, converted to RGB, and pixel values normalized to [0, 1].</p></div></div>
+            <div class="step"><div class="step-num">03</div><div class="step-content"><h4>Feature Extraction</h4><p>Both ResNet152 and VGG16 independently extract morphological features from the image.</p></div></div>
+            <div class="step"><div class="step-num">04</div><div class="step-content"><h4>Ensemble Prediction</h4><p>Softmax outputs are combined via optimized weighted averaging to produce final class probabilities.</p></div></div>
+            <div class="step"><div class="step-num">05</div><div class="step-content"><h4>Results Display</h4><p>Predicted cell type, confidence scores, risk level, and clinical description are shown instantly.</p></div></div>
+        </div>
+    </div>
+
+    <!-- Training -->
+    <div class="section">
+        <div class="section-label">05 — Training Details</div>
+        <ul class="checklist">
+            <li>Dataset balanced with random oversampling to handle class imbalance</li>
+            <li>Data augmentation: rotation, shift, horizontal flip, zoom</li>
+            <li>Transfer learning from ImageNet pre-trained weights</li>
+            <li>Fine-tuning of top layers for cervical cell domain</li>
+            <li>Early stopping + ReduceLROnPlateau to prevent overfitting</li>
+            <li>Ensemble weights optimized on held-out validation set</li>
+        </ul>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="section">
+        <div class="section-label">06 — Disclaimer & Privacy</div>
+        <div class="disclaimer">
+            <h4>⚠ Medical Disclaimer</h4>
+            <p>This system is designed for <strong>research and educational purposes only</strong>. It is not a certified medical device and must not be used for clinical diagnosis or treatment decisions. Always consult qualified healthcare professionals.</p>
+        </div>
+        <ul class="checklist">
+            <li>Uploaded images are processed in real-time and deleted immediately after analysis</li>
+            <li>No images or personal data are stored on any server</li>
+            <li>All processing happens securely within the application runtime</li>
+            <li>No user information is collected or shared with third parties</li>
+        </ul>
+    </div>
+
+    <!-- References -->
+    <div class="section">
+        <div class="section-label">07 — References</div>
+        <ul class="ref-list">
+            <li>He, K. et al. (2016). Deep Residual Learning for Image Recognition. CVPR.</li>
+            <li>Simonyan, K. & Zisserman, A. (2014). Very Deep Convolutional Networks. ICLR.</li>
+            <li>Transfer Learning in Medical Image Analysis — survey &amp; best practices.</li>
+            <li>Ensemble Methods for Deep Learning in Computational Pathology.</li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CervAI — Cell Classification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:       #080c14;
+            --surface:  #0e1420;
+            --border:   #1c2535;
+            --accent:   #00d4ff;
+            --accent2:  #7c3aed;
+            --success:  #00e676;
+            --warn:     #ffa726;
+            --danger:   #ff5252;
+            --text:     #e8edf5;
+            --muted:    #5a6680;
+            --card:     #111827;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Animated grid background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Glowing orbs ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            z-index: 0;
+            animation: drift 12s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: rgba(0,212,255,.06); top: -200px; right: -150px; }
+        .orb-2 { width: 500px; height: 500px; background: rgba(124,58,237,.07); bottom: -150px; left: -100px; animation-delay: -4s; }
+
+        @keyframes drift { to { transform: translate(30px, 20px); } }
+
+        /* ── Layout ── */
+        .page { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+
+        /* ── Nav ── */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0 40px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 56px;
+        }
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+        }
+        .logo span { color: var(--text); }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a {
+            font-family: 'DM Mono', monospace;
+            font-size: .8rem;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 8px 18px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: all .25s;
+            letter-spacing: .04em;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: rgba(0,212,255,.05);
+        }
+
+        /* ── Hero ── */
+        .hero { margin-bottom: 48px; }
+        .hero-tag {
+            font-family: 'DM Mono', monospace;
+            font-size: .75rem;
+            color: var(--accent);
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hero-tag::before {
+            content: '';
+            display: inline-block;
+            width: 28px; height: 1px;
+            background: var(--accent);
+        }
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            margin-bottom: 16px;
+        }
+        .hero h1 em {
+            font-style: normal;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 520px;
+            font-weight: 300;
+        }
+
+        /* ── Stats row ── */
+        .stats-row {
+            display: flex;
+            gap: 1px;
+            background: var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            border: 1px solid var(--border);
+        }
+        .stat {
+            flex: 1;
+            background: var(--card);
+            padding: 20px 24px;
+            text-align: center;
+        }
+        .stat-val {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+        }
+        .stat-lbl {
+            font-size: .72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* ── Upload zone ── */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 64px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .3s;
+            background: var(--card);
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-zone::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(0,212,255,.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(0,212,255,.03);
+        }
+        .upload-zone.drag {
+            border-color: var(--accent);
+            background: rgba(0,212,255,.07);
+            transform: scale(1.01);
+        }
+        .upload-icon {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: rgba(0,212,255,.08);
+            border: 1px solid rgba(0,212,255,.2);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 2rem;
+            transition: transform .3s;
+        }
+        .upload-zone:hover .upload-icon { transform: scale(1.1) rotate(-5deg); }
+        .upload-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .upload-sub {
+            color: var(--muted);
+            font-size: .88rem;
+            margin-bottom: 24px;
+        }
+        .btn-upload {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--accent), #0099bb);
+            color: #000;
+            font-weight: 600;
+            font-size: .9rem;
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all .25s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,.25); }
+        .formats {
+            margin-top: 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: .72rem;
+            color: var(--muted);
+            letter-spacing: .05em;
+        }
+        #fileInput { display: none; }
+
+        /* ── Loading ── */
+        #loading {
+            display: none;
+            padding: 80px 32px;
+            text-align: center;
+        }
+        .scan-ring {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+        .scan-ring::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--accent2);
+            animation: spin .6s linear infinite reverse;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text {
+            font-family: 'DM Mono', monospace;
+            color: var(--accent);
+            font-size: .9rem;
+            letter-spacing: .1em;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse { 50% { opacity: .4; } }
+
+        /* ── Error ── */
+        #errorBox {
+            display: none;
+            background: rgba(255,82,82,.08);
+            border: 1px solid rgba(255,82,82,.3);
+            border-radius: 10px;
+            padding: 16px 20px;
+            color: var(--danger);
+            font-size: .9rem;
+            margin-top: 20px;
+        }
+
+        /* ── Results ── */
+        #results { display: none; margin-top: 40px; }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .img-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .img-panel-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            font-family: 'DM Mono', monospace;
+            font-size: .75rem;
+            color: var(--muted);
+            letter-spacing: .08em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: blink 2s ease-in-out infinite; }
+        @keyframes blink { 50% { opacity: .2; } }
+        .img-panel img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            max-height: 340px;
+        }
+
+        .result-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .result-panel-header {
+            font-family: 'DM Mono', monospace;
+            font-size: .72rem;
+            color: var(--muted);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .top-prediction {
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .top-prediction::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            filter: blur(50px);
+            opacity: .15;
+            background: var(--pred-color, #00d4ff);
+        }
+        .pred-label {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .confidence-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 14px 0;
+        }
+        .conf-track {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .conf-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s cubic-bezier(.4,0,.2,1);
+        }
+        .conf-pct {
+            font-family: 'DM Mono', monospace;
+            font-size: .85rem;
+            font-weight: 500;
+            min-width: 48px;
+            text-align: right;
+        }
+        .risk-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-family: 'DM Mono', monospace;
+            font-weight: 500;
+            letter-spacing: .04em;
+            border: 1px solid;
+        }
+        .pred-desc {
+            margin-top: 12px;
+            font-size: .85rem;
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        .all-preds-title {
+            font-family: 'DM Mono', monospace;
+            font-size: .72rem;
+            color: var(--muted);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .pred-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            transition: all .2s;
+        }
+        .pred-row:hover { border-color: var(--muted); }
+        .pred-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .pred-name { flex: 1; font-size: .88rem; font-weight: 500; }
+        .pred-mini-bar {
+            width: 80px; height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .pred-mini-fill { height: 100%; border-radius: 2px; }
+        .pred-pct {
+            font-family: 'DM Mono', monospace;
+            font-size: .78rem;
+            color: var(--muted);
+            min-width: 44px;
+            text-align: right;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .85rem;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+            font-weight: 600;
+            flex: 1;
+        }
+        .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--accent), #0099bb);
+            border: none;
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .85rem;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+            font-weight: 600;
+            flex: 1;
+        }
+        .download-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,.25); }
+
+        .disclaimer {
+            margin-top: 40px;
+            padding: 18px 22px;
+            border-radius: 10px;
+            background: rgba(124,58,237,.06);
+            border: 1px solid rgba(124,58,237,.2);
+            font-size: .82rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+        .disclaimer strong { color: var(--text); }
+
+        @media (max-width: 768px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .stats-row { flex-wrap: wrap; }
+            .stat { min-width: calc(50% - 1px); }
+        }
+    </style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="page">
+    <nav>
+        <div class="logo">Cerv<span>AI</span></div>
+        <div class="nav-links">
+            <a href="/" class="active">Classify</a>
+            <a href="/about">About</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-tag">AI-Powered Pathology</div>
+        <h1>Cervical Cell<br><em>Classification</em></h1>
+        <p>Upload a cervical cell image for instant AI analysis using an ensemble of ResNet152 &amp; VGG16 deep learning models.</p>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat"><span class="stat-val">94.23%</span><span class="stat-lbl">Accuracy</span></div>
+        <div class="stat"><span class="stat-val">5</span><span class="stat-lbl">Cell Types</span></div>
+        <div class="stat"><span class="stat-val">4,155</span><span class="stat-lbl">Train Images</span></div>
+        <div class="stat"><span class="stat-val">2</span><span class="stat-lbl">AI Models</span></div>
+    </div>
+
+    <!-- Upload -->
+    <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">🔬</div>
+        <div class="upload-title">Drop your cell image here</div>
+        <div class="upload-sub">or click to browse from your device</div>
+        <button class="btn-upload" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+            ↑ Choose Image
+        </button>
+        <div class="formats">PNG · JPG · JPEG · BMP · TIF · TIFF &nbsp;·&nbsp; max 16 MB</div>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div id="loading">
+        <div class="scan-ring"></div>
+        <div class="loading-text">ANALYSING CELL MORPHOLOGY…</div>
+    </div>
+
+    <div id="errorBox"></div>
+
+    <!-- Results -->
+    <div id="results">
+        <div style="display: flex; gap: 12px; margin-bottom: 28px;">
+            <button class="reset-btn" onclick="resetUpload()">← Upload Another</button>
+            <button class="download-btn" onclick="downloadPDF()">⬇ Download Report</button>
+        </div>
+        <div class="results-grid">
+            <div class="img-panel">
+                <div class="img-panel-header"><div class="dot"></div> INPUT IMAGE</div>
+                <img id="previewImg" src="" alt="cell image">
+            </div>
+            <div class="result-panel">
+                <div class="result-panel-header">ANALYSIS RESULTS</div>
+                <div class="top-prediction" id="topPred">
+                    <div class="pred-label" id="predClass">—</div>
+                    <div class="confidence-row">
+                        <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+                        <div class="conf-pct" id="confPct">0%</div>
+                    </div>
+                    <div><span class="risk-pill" id="riskPill">—</span></div>
+                    <div class="pred-desc" id="predDesc"></div>
+                </div>
+                <div class="all-preds-title">ALL CLASSIFICATIONS</div>
+                <div id="allPreds"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        <strong>⚠️ Medical Disclaimer:</strong> This system is for research &amp; educational purposes only. It is <strong>not</strong> a certified medical device and must not be used for clinical diagnosis or treatment decisions. Always consult qualified healthcare professionals.
+    </div>
+</div>
+
+<script>
+const uploadZone = document.getElementById('uploadZone');
+const fileInput  = document.getElementById('fileInput');
+let currentResults = null;
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('drag');
+    const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+});
+fileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) handleFile(f); });
+
+function handleFile(file) {
+    const ok = ['image/png','image/jpeg','image/jpg','image/bmp','image/tiff'];
+    if (!ok.includes(file.type)) return showError('Unsupported format. Use PNG, JPG, BMP, or TIF.');
+    if (file.size > 16*1024*1024) return showError('File too large — max 16 MB.');
+    uploadImage(file);
+}
+
+function uploadImage(file) {
+    const fd = new FormData(); fd.append('file', file);
+    uploadZone.style.display  = 'none';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('errorBox').style.display = 'none';
+
+    fetch('/predict', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(d => { if (d.error) throw new Error(d.error); showResults(d); })
+        .catch(e => { showError(e.message); resetUpload(); });
+}
+
+function showResults(d) {
+    document.getElementById('loading').style.display  = 'none';
+    document.getElementById('results').style.display  = 'block';
+    document.getElementById('previewImg').src = d.image_data;
+
+    currentResults = d;
+
+    // Top prediction
+    const tp = document.getElementById('topPred');
+    tp.style.borderColor = d.color + '44';
+    tp.style.setProperty('--pred-color', d.color);
+
+    document.getElementById('predClass').textContent = d.predicted_class_display;
+    document.getElementById('predClass').style.color = d.color;
+
+    const fill = document.getElementById('confFill');
+    fill.style.background = d.color;
+    setTimeout(() => fill.style.width = d.confidence + '%', 50);
+    document.getElementById('confPct').textContent = d.confidence.toFixed(1) + '%';
+    document.getElementById('confPct').style.color = d.color;
+
+    const rp = document.getElementById('riskPill');
+    rp.textContent = '◉  Risk: ' + d.risk_level;
+    rp.style.color = d.color;
+    rp.style.borderColor = d.color + '55';
+    rp.style.background  = d.color + '11';
+
+    document.getElementById('predDesc').textContent = d.description;
+
+    // All predictions
+    const container = document.getElementById('allPreds');
+    container.innerHTML = '';
+    d.all_predictions.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'pred-row';
+        row.innerHTML = `
+            <div class="pred-dot" style="background:${p.color}"></div>
+            <div class="pred-name">${p.class_display}</div>
+            <div class="pred-mini-bar"><div class="pred-mini-fill" style="width:${p.confidence}%;background:${p.color}"></div></div>
+            <div class="pred-pct">${p.confidence.toFixed(1)}%</div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function showError(msg) {
+    const b = document.getElementById('errorBox');
+    b.textContent = '⚠ ' + msg;
+    b.style.display = 'block';
+    document.getElementById('loading').style.display = 'none';
+}
+
+function downloadPDF() {
+    if (!currentResults) return;
+
+    fetch('/generate-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentResults)
+    })
+    .then(r => r.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CervAI_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .catch(e => showError('Failed to generate PDF: ' + e.message));
+}
+
+function resetUpload() {
+    uploadZone.style.display = 'block';
+    document.getElementById('results').style.display  = 'none';
+    document.getElementById('loading').style.display  = 'none';
+    document.getElementById('errorBox').style.display = 'none';
+    fileInput.value = '';
+}
+</script>
+</body>
+</html>
