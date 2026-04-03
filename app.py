@@ -358,5 +358,3 @@ def generate_report():
 
 if __name__ == "__main__":
     load_models()
-    log.info("CervAI starting → http://localhost:8080  [debug=%s]", DEBUG_MODE)
-    app.run(host="0.0.0.0", port=8080, debug=DEBUG_MODE)
